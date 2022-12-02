@@ -1,2 +1,2 @@
 # ocaSnake
- Snake clone in Ocaml
+ Snake game, but in ocaml
