@@ -47,7 +47,8 @@ let expand_snake s (x,y) direction =
   | E -> Queue.push (x, y+1) s; t := (x, y+1)
   in
   let _ = aux s (x,y) direction in
-  print_c !t;;
+  let _ = print_c !t in
+  !t;;
 let set_snake (y,x) =
   let midx = x / 2 in
   let midy = y / 2 in
@@ -57,35 +58,38 @@ let set_snake (y,x) =
   (midx, midy)
 ;;
   
-let getdirection input = match input with
-| 258 -> N
-| 259 -> S
-| 260 -> E
-| 261 -> W
-| _ -> N
+let getdirection input fdirection  = match input with
+| 258 -> E
+| 259 -> W
+| 260 -> N
+| 261 -> S
+| _ -> fdirection
 ;;
 
 
 (* MAIN LOOP *)
-let rec main_loop win s t = 
+let rec main_loop win s t fdirection= 
 
   let _ = Curses.refresh in
 
   (* Getting input *)
+  let _ = Curses.timeout 100 in
   let input = Curses.getch () in
-  let t2 = slide_snake s t (getdirection input) in
+  let direction = getdirection input fdirection in
+  let t2 = slide_snake s t direction in
 
   (* Pressing q leave the game *)
   if (input == 113) then 
     1
   else
-    main_loop win s t2
+    main_loop win s t2 direction
 ;;
 
 let initialize_window = 
   let win = Curses.initscr () in
   let _ = Curses.keypad win true in
   let _ = Curses.noecho in
+  let _ = Curses.curs_set 0 in
   win;;
 
 
@@ -100,6 +104,6 @@ let () =
   let _ = Queue.push t s in
 
   (* Main loop *)
-  let _ = main_loop win s t in
+  let _ = main_loop win s t N in
   
   Curses.endwin ();;
