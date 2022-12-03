@@ -10,13 +10,13 @@ let draw_menu menu_win maxxy =
   let _ = Curses.box menu_win 0 0 in
   Curses.wrefresh menu_win;;
 
-let print_c x y = 
+let print_c (x,y) = 
   let _ = Curses.move y x in
   let _ = Curses.addch 65 in
   ()
 ;;
 
-let remove_c x y =
+let remove_c (x,y) =
   let _ = Curses.move y x in
   let _ = Curses.addch 32 in
   ()
@@ -33,24 +33,27 @@ let slide_snake s (x,y) direction =
   | E -> Queue.push (x, y+1) s; t := (x, y+1)
   in
   let (x1,y1) = Queue.pop s in
-  let _ = remove_c x1 y1 in
+  let _ = remove_c (x1,y1) in
   let _ = aux s (x,y) direction in
+  let _ = print_c !t in
   !t
 ;;
 let expand_snake s (x,y) direction =
+  let t = ref (0,0) in
   let aux s (x,y) direction = match direction with
-  | N -> Queue.push (x-1, y) s
-  | W -> Queue.push (x, y-1) s
-  | S -> Queue.push (x+1, y) s
-  | E -> Queue.push (x, y+1) s
+  | N -> Queue.push (x-1, y) s; t := (x-1, y)
+  | W -> Queue.push (x, y-1) s; t := (x, y-1)
+  | S -> Queue.push (x+1, y) s; t := (x+1, y)
+  | E -> Queue.push (x, y+1) s; t := (x, y+1)
   in
-  aux s (x,y) direction;;
+  let _ = aux s (x,y) direction in
+  print_c !t;;
 let set_snake (y,x) =
   let midx = x / 2 in
   let midy = y / 2 in
   let s = create_snake () in
   let _ = Queue.push (midx, midy) s in
-  let _ = print_c midx midy in
+  let _ = print_c (midx,midy) in
   (midx, midy)
 ;;
   
@@ -64,10 +67,8 @@ let getdirection input = match input with
 
 
 (* MAIN LOOP *)
-let rec main_loop win menu s t = 
-  (* Getting window size for every frames *)
-  let maxxy = Curses.getmaxyx win in
-  let _ = draw_menu menu maxxy in
+let rec main_loop win s t = 
+
   let _ = Curses.refresh in
 
   (* Getting input *)
@@ -78,7 +79,7 @@ let rec main_loop win menu s t =
   if (input == 113) then 
     1
   else
-    main_loop win menu s t2
+    main_loop win s t2
 ;;
 
 let initialize_window = 
@@ -92,14 +93,13 @@ let () =
   (* Window and menu init*)
   let win = initialize_window in
   let maxxy = Curses.getmaxyx win in
-  let menu_dims = get_menu_dimensions maxxy in
-  let menu = Curses.newwin (fst menu_dims) (snd menu_dims) 0 0  in
 
   (*Snake init *)
   let s =  create_snake () in
   let t = set_snake maxxy in
+  let _ = Queue.push t s in
 
   (* Main loop *)
-  let _ = main_loop win menu s t in
+  let _ = main_loop win s t in
   
   Curses.endwin ();;
