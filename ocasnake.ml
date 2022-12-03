@@ -16,27 +16,44 @@ let print_c (x,y) =
   ()
 ;;
 
+let print_a (x,y) = 
+  let _ = Curses.move y x in
+  let _ = Curses.addch 112 in
+  ()
+;;
+
 let remove_c (x,y) =
   let _ = Curses.move y x in
   let _ = Curses.addch 32 in
   ()
 ;;
 
+let set_apple (x,y) =
+  let resx = Random.int x in
+  let resy = Random.int y in
+  let _ = print_a (resx, resy) in
+  (resx,resy)
+;;
+
 (* GAME FUNCTIONS *)
 let create_snake = Queue.create;;
-let slide_snake s (x,y) direction = 
+let slide_snake s (x,y) direction apple = 
   let t = ref (0,0) in
   let aux s (x,y) direction = match direction with
-  | N -> Queue.push (x-1, y) s; t := (x-1, y)
-  | W -> Queue.push (x, y-1) s; t := (x, y-1)
-  | S -> Queue.push (x+1, y) s; t := (x+1, y)
-  | E -> Queue.push (x, y+1) s; t := (x, y+1)
+    | N -> Queue.push (x-1, y) s; t := (x-1, y)
+    | W -> Queue.push (x, y-1) s; t := (x, y-1)
+    | S -> Queue.push (x+1, y) s; t := (x+1, y)
+    | E -> Queue.push (x, y+1) s; t := (x, y+1)
   in
-  let (x1,y1) = Queue.pop s in
-  let _ = remove_c (x1,y1) in
   let _ = aux s (x,y) direction in
   let _ = print_c !t in
-  !t
+  if (apple == !t) then
+    !t
+  else
+    (let (x1,y1) = Queue.pop s in
+    let _ = remove_c (x1,y1) in
+    !t)
+  
 ;;
 let expand_snake s (x,y) direction =
   let t = ref (0,0) in
@@ -48,7 +65,8 @@ let expand_snake s (x,y) direction =
   in
   let _ = aux s (x,y) direction in
   let _ = print_c !t in
-  !t;;
+  !t
+;;
 let set_snake (y,x) =
   let midx = x / 2 in
   let midy = y / 2 in
@@ -68,7 +86,7 @@ let getdirection input fdirection  = match input with
 
 
 (* MAIN LOOP *)
-let rec main_loop win s t fdirection= 
+let rec main_loop win s t fdirection apple = 
 
   let _ = Curses.refresh in
 
@@ -76,13 +94,13 @@ let rec main_loop win s t fdirection=
   let _ = Curses.timeout 100 in
   let input = Curses.getch () in
   let direction = getdirection input fdirection in
-  let t2 = slide_snake s t direction in
+  let t2 = slide_snake s t direction apple in
 
   (* Pressing q leave the game *)
   if (input == 113) then 
     1
   else
-    main_loop win s t2 direction
+    main_loop win s t2 direction apple
 ;;
 
 let initialize_window = 
@@ -102,8 +120,9 @@ let () =
   let s =  create_snake () in
   let t = set_snake maxxy in
   let _ = Queue.push t s in
+  let apple = set_apple maxxy in
 
   (* Main loop *)
-  let _ = main_loop win s t N in
+  let _ = main_loop win s t N apple in
   
   Curses.endwin ();;
