@@ -51,9 +51,18 @@ let remove_c (x,y) =
 
 let set_apple (x,y) =
   let _ = Random.self_init  in
-  let resx = (Random.int x)/2*2+1 in
-  let resy = (Random.int y)/2*2+1 in
+  let time = Sys.time () in
+  let _ = Random.init ((Random.int 2048) + (int_of_float time)) in
+  let resx = (Random.int y)/2*2+1 in
+  let resy = (Random.int x)/2*2+1 in
   let _ = print_a (resx, resy) in
+
+  (*debug*)
+  let _ = Curses.move 0 0 in
+  let _ = Curses.addch (48+resx) in
+  let _ = Curses.move 2 0 in
+  let _ = Curses.addch (48+resy) in
+
   (resx,resy)
 ;;
 
