@@ -6,7 +6,8 @@ let initialize_window =
   let _ = Curses.keypad win true in
   let _ = Curses.noecho in
   let _ = Curses.curs_set 0 in
-  win;;
+  win
+;;
 
 let win = initialize_window;;
 let maxxy = Curses.getmaxyx win;;
@@ -15,12 +16,14 @@ let maxxy = Curses.getmaxyx win;;
 (* SYSTEM FUNCTIONS *)
 let get_menu_dimensions maxxy = 
   (((fst maxxy) - 5), (snd maxxy))
+;;
 
 let draw_menu menu_win maxxy = 
   let dims = get_menu_dimensions maxxy in
   let _ = Curses.wresize menu_win (fst dims) (snd dims) in
   let _ = Curses.box menu_win 0 0 in
-  Curses.wrefresh menu_win;;
+  Curses.wrefresh menu_win
+;;
 
 let print_c (x,y) = 
   let _ = Curses.move y x in
@@ -65,14 +68,15 @@ let slide_snake s (x,y) direction apple =
   in
   let _ = aux s (x,y) direction in
   let _ = print_c !t in
-  if (apple == !t) then(
-    let _ = set_apple maxxy in
+  if (apple == !t) then
+    (let _ = set_apple maxxy in
     !t)
   else
     (let (x1,y1) = Queue.pop s in
     let _ = remove_c (x1,y1) in
     !t)
 ;;
+
 let set_snake (y,x) =
   let midx = x / 2 in
   let midy = y / 2 in
@@ -121,4 +125,5 @@ let () =
   (* Main loop *)
   let _ = main_loop win s t N apple in
   
-  Curses.endwin ();;
+  Curses.endwin ()
+;;
