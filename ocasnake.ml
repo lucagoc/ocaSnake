@@ -72,6 +72,29 @@ let set_apple (x,y) =
 
 (* GAME FUNCTIONS *)
 let create_snake = Queue.create;;
+
+let issnakescrewed s t = 
+  let s2 = Queue.copy s in
+  
+  (*Routing the queue*)
+  let rec aux sa t =
+    if(Queue.is_empty sa) then
+      false
+    else
+      let t2 = Queue.pop sa in
+      let (x1, y1) = t in
+      let (x2, y2) = t2 in
+      if (Queue.is_empty sa) then
+        false
+      else
+      if (x1 == x2 && y1 == y2) then
+        true
+      else
+        aux sa t
+  in
+
+  aux s2 t
+;;
 let slide_snake s (x,y) direction apple = 
   let t = ref (0,0) in
   let aux s (x,y) direction = match direction with
@@ -86,6 +109,9 @@ let slide_snake s (x,y) direction apple =
   let (xapple, yapple) = apple in
   let (tx, ty) = !t in
   let (maxx, maxy) = maxxy in
+  if (issnakescrewed s !t) then
+    ((-1,-1),(-1,-1)) (*Return stupid values*)
+  else
   if (xapple == tx && yapple == ty) then
     (let apple = set_apple maxxy in
     (!t,apple))
