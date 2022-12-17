@@ -1,5 +1,17 @@
 type direction = N | E | S | W;;
 
+(* Window and menu init*)
+let initialize_window = 
+  let win = Curses.initscr () in
+  let _ = Curses.keypad win true in
+  let _ = Curses.noecho in
+  let _ = Curses.curs_set 0 in
+  win;;
+
+let win = initialize_window;;
+let maxxy = Curses.getmaxyx win;;
+
+
 (* SYSTEM FUNCTIONS *)
 let get_menu_dimensions maxxy = 
   (((fst maxxy) - 5), (snd maxxy))
@@ -13,11 +25,15 @@ let draw_menu menu_win maxxy =
 let print_c (x,y) = 
   let _ = Curses.move y x in
   let _ = Curses.addch 65 in
+  let _ = Curses.move y (x+1) in
+  let _ = Curses.addch 65 in
   ()
 ;;
 
 let print_a (x,y) = 
   let _ = Curses.move y x in
+  let _ = Curses.addch 112 in
+  let _ = Curses.move y (x+1) in
   let _ = Curses.addch 112 in
   ()
 ;;
@@ -25,12 +41,14 @@ let print_a (x,y) =
 let remove_c (x,y) =
   let _ = Curses.move y x in
   let _ = Curses.addch 32 in
+  let _ = Curses.move y (x+1) in
+  let _ = Curses.addch 32 in
   ()
 ;;
 
 let set_apple (x,y) =
-  let resx = Random.int x in
-  let resy = Random.int y in
+  let resx = (Random.int x)/2*2+1 in
+  let resy = (Random.int y)/2*2+1 in
   let _ = print_a (resx, resy) in
   (resx,resy)
 ;;
@@ -40,32 +58,20 @@ let create_snake = Queue.create;;
 let slide_snake s (x,y) direction apple = 
   let t = ref (0,0) in
   let aux s (x,y) direction = match direction with
-    | N -> Queue.push (x-1, y) s; t := (x-1, y)
+    | N -> Queue.push (x-2, y) s; t := (x-2, y)
     | W -> Queue.push (x, y-1) s; t := (x, y-1)
-    | S -> Queue.push (x+1, y) s; t := (x+1, y)
+    | S -> Queue.push (x+2, y) s; t := (x+2, y)
     | E -> Queue.push (x, y+1) s; t := (x, y+1)
   in
   let _ = aux s (x,y) direction in
   let _ = print_c !t in
-  if (apple == !t) then
-    !t
+  if (apple == !t) then(
+    let _ = set_apple maxxy in
+    !t)
   else
     (let (x1,y1) = Queue.pop s in
     let _ = remove_c (x1,y1) in
     !t)
-  
-;;
-let expand_snake s (x,y) direction =
-  let t = ref (0,0) in
-  let aux s (x,y) direction = match direction with
-  | N -> Queue.push (x-1, y) s; t := (x-1, y)
-  | W -> Queue.push (x, y-1) s; t := (x, y-1)
-  | S -> Queue.push (x+1, y) s; t := (x+1, y)
-  | E -> Queue.push (x, y+1) s; t := (x, y+1)
-  in
-  let _ = aux s (x,y) direction in
-  let _ = print_c !t in
-  !t
 ;;
 let set_snake (y,x) =
   let midx = x / 2 in
@@ -91,7 +97,7 @@ let rec main_loop win s t fdirection apple =
   let _ = Curses.refresh in
 
   (* Getting input *)
-  let _ = Curses.timeout 100 in
+  let _ = Curses.timeout 200 in
   let input = Curses.getch () in
   let direction = getdirection input fdirection in
   let t2 = slide_snake s t direction apple in
@@ -103,18 +109,8 @@ let rec main_loop win s t fdirection apple =
     main_loop win s t2 direction apple
 ;;
 
-let initialize_window = 
-  let win = Curses.initscr () in
-  let _ = Curses.keypad win true in
-  let _ = Curses.noecho in
-  let _ = Curses.curs_set 0 in
-  win;;
-
 
 let () = 
-  (* Window and menu init*)
-  let win = initialize_window in
-  let maxxy = Curses.getmaxyx win in
 
   (*Snake init *)
   let s =  create_snake () in
