@@ -6,6 +6,10 @@ let initialize_window =
   let _ = Curses.keypad win true in
   let _ = Curses.noecho in
   let _ = Curses.curs_set 0 in
+  let _ = Curses.start_color () in
+  let _ = Curses.init_pair 0 0 0 in (*Background*)
+  let _ = Curses.init_pair 1 0 3 in (*Snake*)
+  let _ = Curses.init_pair 2 0 1 in (*Apple*)
   win
 ;;
 
@@ -26,26 +30,32 @@ let draw_menu menu_win maxxy =
 ;;
 
 let print_c (x,y) = 
+  let _ = Curses.attr_set 1 1 in
   let _ = Curses.move y x in
-  let _ = Curses.addch 65 in
+  let _ = Curses.addch 32 in
   let _ = Curses.move y (x+1) in
-  let _ = Curses.addch 65 in
+  let _ = Curses.addch 32 in
+  let _ = Curses.attr_set 0 0 in
   ()
 ;;
 
 let print_a (x,y) = 
+  let _ = Curses.attr_set 2 2 in
   let _ = Curses.move y x in
-  let _ = Curses.addch 112 in
+  let _ = Curses.addch 32 in
   let _ = Curses.move y (x+1) in
-  let _ = Curses.addch 112 in
+  let _ = Curses.addch 32 in
+  let _ = Curses.attr_set 0 0 in
   ()
 ;;
 
 let remove_c (x,y) =
+  let _ = Curses.attr_set 0 0 in
   let _ = Curses.move y x in
   let _ = Curses.addch 32 in
   let _ = Curses.move y (x+1) in
   let _ = Curses.addch 32 in
+  let _ = Curses.attr_set 0 0 in
   ()
 ;;
 
@@ -56,12 +66,6 @@ let set_apple (x,y) =
   let resx = (Random.int y)/2*2+1 in
   let resy = (Random.int x)/2*2+1 in
   let _ = print_a (resx, resy) in
-
-  (*debug*)
-  let _ = Curses.move 0 0 in
-  let _ = Curses.addch (48+resx) in
-  let _ = Curses.move 2 0 in
-  let _ = Curses.addch (48+resy) in
 
   (resx,resy)
 ;;
