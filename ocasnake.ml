@@ -12,6 +12,15 @@ let initialize_window =
   let _ = Curses.init_pair 2 0 1 in (*Apple*)
   let _ = Curses.init_pair 3 0 2 in (*Score*)
   let _ = Curses.init_pair 4 0 5 in (*Overlay*)
+
+  let _ = Curses.init_pair 11 0 12 in
+  let _ = Curses.init_pair 12 0 2 in
+  let _ = Curses.init_pair 13 0 3 in
+  let _ = Curses.init_pair 14 0 4 in
+  let _ = Curses.init_pair 15 0 5 in
+  let _ = Curses.init_pair 16 0 6 in
+  let _ = Curses.init_pair 17 0 14 in
+  let _ = Curses.init_pair 18 0 13 in
   win
 ;;
 
@@ -31,8 +40,24 @@ let draw_menu menu_win maxxy =
   Curses.wrefresh menu_win
 ;;
 
-let print_c (x,y) = 
-  let _ = Curses.attr_set 1 1 in
+let print_s (x,y) rainbowmode =
+  let color = ((x/2)+y) mod 8 in
+  let aux color rainbowmode = 
+    if (rainbowmode) then match color with
+    | 0 -> Curses.attr_set 11 11
+    | 1 -> Curses.attr_set 12 12
+    | 2 -> Curses.attr_set 13 13
+    | 3 -> Curses.attr_set 14 14 
+    | 4 -> Curses.attr_set 15 15
+    | 5 -> Curses.attr_set 16 16
+    | 6 -> Curses.attr_set 17 17
+    | 7 -> Curses.attr_set 18 18
+    | _ -> Curses.attr_set 11 11
+    else
+      Curses.attr_set 1 1
+  in
+
+  let _ = aux color rainbowmode in
   let _ = Curses.move y x in
   let _ = Curses.addch 32 in
   let _ = Curses.move y (x+1) in
@@ -125,7 +150,7 @@ let rec yourescrewd () =
 ;;
 
 
-let slide_snake s (x,y) direction apple score = 
+let slide_snake s (x,y) direction apple score rainbowmode = 
   let t = ref (0,0) in
   let aux s (x,y) direction = match direction with
     | N -> Queue.push (x-2, y) s; t := (x-2, y)
@@ -134,7 +159,7 @@ let slide_snake s (x,y) direction apple score =
     | E -> Queue.push (x, y+1) s; t := (x, y+1)
   in
   let _ = aux s (x,y) direction in
-  let _ = print_c !t in
+  let _ = print_s !t rainbowmode in
 
   let (xapple, yapple) = apple in
   let (tx, ty) = !t in
@@ -161,7 +186,7 @@ let set_snake (y,x) =
   let midy = y / 2 in
   let s = create_snake () in
   let _ = Queue.push (midx, midy) s in
-  let _ = print_c (midx,midy) in
+  let _ = print_s (midx,midy) false in
   (midx, midy)
 ;;
   
@@ -200,10 +225,11 @@ let rec main_loop win s t fdirection apple score =
   let _ = Curses.refresh in
 
   (* Getting input *)
-  let _ = Curses.timeout (speedcalculation score) in
+  let speed = (speedcalculation score) in
+  let _ = Curses.timeout speed in
   let input = Curses.getch () in
   let direction = getdirection input fdirection in
-  let (t2,napple) = slide_snake s t direction apple score in
+  let (t2,napple) = slide_snake s t direction apple score (speed < 70) in
 
   let _ = print_score score in
 
@@ -226,7 +252,7 @@ let () =
   let t = set_snake maxxy in
   let _ = Queue.push t s in
   let apple = set_apple maxxy s in
-  let score = ref 0 in
+  let score = ref 35 in
 
   (* Main loop *)
   let _ = main_loop win s t N apple score in
