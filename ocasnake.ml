@@ -11,7 +11,7 @@ let initialize_window =
   let _ = Curses.init_pair 1 0 4 in (*Snake*)
   let _ = Curses.init_pair 2 0 1 in (*Apple*)
   let _ = Curses.init_pair 3 0 2 in (*Score*)
-  let _ = Curses.init_pair 4 0 5 in (*Overlay*)
+  let _ = Curses.init_pair 4 0 7 in (*Overlay*)
 
   let _ = Curses.init_pair 11 0 12 in
   let _ = Curses.init_pair 12 0 2 in
