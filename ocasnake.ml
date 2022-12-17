@@ -94,6 +94,12 @@ let rec set_apple (x,y) s =
   (*Test to not override the snake, using snakescrewed function*)
   if (issnakescrewed s (resx,resy)) then
     set_apple (x,y) s
+
+  (*Test to not override the score*)
+  else if(resy < 10 && resx == 0) then
+    set_apple (x,y) s
+
+  (*Common case*)
   else
     let _ = print_a (resx, resy) in
     (resx, resy)
