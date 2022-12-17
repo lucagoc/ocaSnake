@@ -252,7 +252,7 @@ let () =
   let t = set_snake maxxy in
   let _ = Queue.push t s in
   let apple = set_apple maxxy s in
-  let score = ref 35 in
+  let score = ref 0 in
 
   (* Main loop *)
   let _ = main_loop win s t N apple score in
