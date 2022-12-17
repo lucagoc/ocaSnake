@@ -10,6 +10,8 @@ let initialize_window =
   let _ = Curses.init_pair 0 0 0 in (*Background*)
   let _ = Curses.init_pair 1 0 4 in (*Snake*)
   let _ = Curses.init_pair 2 0 1 in (*Apple*)
+  let _ = Curses.init_pair 3 0 2 in (*Score*)
+  let _ = Curses.init_pair 4 0 2 in (*Overlay*)
   win
 ;;
 
@@ -59,20 +61,6 @@ let remove_c (x,y) =
   ()
 ;;
 
-let set_apple (x,y) =
-  let _ = Random.self_init  in
-  let time = Sys.time () in
-  let _ = Random.init ((Random.int 2048) + (int_of_float time)) in
-  let resx = ((Random.int y)/2)*2 in
-  let resy = ((Random.int x)/2)*2 in
-  let _ = print_a (resx, resy) in
-
-  (resx,resy)
-;;
-
-(* GAME FUNCTIONS *)
-let create_snake = Queue.create;;
-
 let issnakescrewed s t = 
   let s2 = Queue.copy s in
   
@@ -95,7 +83,43 @@ let issnakescrewed s t =
 
   aux s2 t
 ;;
-let slide_snake s (x,y) direction apple = 
+
+let rec set_apple (x,y) s =
+  let _ = Random.self_init  in
+  let time = Sys.time () in
+  let _ = Random.init ((Random.int 2048) + (int_of_float time)) in
+  let resx = ((Random.int y)/2)*2 in
+  let resy = ((Random.int x)/2)*2 in
+
+  (*Test to not override the snake, using snakescrewed function*)
+  if (issnakescrewed s (resx,resy)) then
+    set_apple (x,y) s
+  else
+    let _ = print_a (resx, resy) in
+    (resx, resy)
+;;
+
+(* GAME FUNCTIONS *)
+let create_snake = Queue.create;;
+
+let rec yourescrewd () =
+  let _ = Curses.attr_set 2 2 in
+  let (x,y) = maxxy in
+  let midx = x / 2 + (x mod 2) in
+  let midy = y / 2 in
+  let _ = Curses.move midx (midy-16) in
+  let _ = Curses.addstr "YOURE SCREWD ! Press q to quit..." in
+  let _ = Curses.attr_set 0 0 in
+  let _ = Curses.timeout (-1) in
+  let input = Curses.getch () in
+  if (input == 113) then
+    ()
+  else
+    yourescrewd ()
+;;
+
+
+let slide_snake s (x,y) direction apple score = 
   let t = ref (0,0) in
   let aux s (x,y) direction = match direction with
     | N -> Queue.push (x-2, y) s; t := (x-2, y)
@@ -110,13 +134,16 @@ let slide_snake s (x,y) direction apple =
   let (tx, ty) = !t in
   let (maxx, maxy) = maxxy in
   if (issnakescrewed s !t) then
-    ((-1,-1),(-1,-1)) (*Return stupid values*)
+    (yourescrewd ();
+    ((-1,-1),(-1,-1))) (*Return stupid values*)
   else
   if (xapple == tx && yapple == ty) then
-    (let apple = set_apple maxxy in
+    (let apple = set_apple maxxy s in
+    score := !score + 1;
     (!t,apple))
-  else if ((tx < 0) || (ty < 0) || (tx > maxy/2*2-1) || (ty > maxx/2*2-1)) then
-    ((-1,-1),(-1,-1)) (*Return stupid values*)
+  else if ((tx < 0) || (ty < 0) || (tx > maxy/2*2-1) || (ty > maxx/2*2)) then
+    (yourescrewd ();
+    ((-1,-1),(-1,-1))) (*Return stupid values*)
   else
     (let (x1,y1) = Queue.pop s in
     let _ = remove_c (x1,y1) in
@@ -133,32 +160,56 @@ let set_snake (y,x) =
 ;;
   
 let getdirection input fdirection  = match input with
-| 258 -> E
-| 259 -> W
-| 260 -> N
-| 261 -> S
+| 258 -> if not(fdirection == W) then E else fdirection;
+| 259 -> if not(fdirection == E) then W else fdirection;
+| 260 -> if not(fdirection == S) then N else fdirection;
+| 261 -> if not(fdirection == N) then S else fdirection;
 | _ -> fdirection
 ;;
 
+let print_score score =
+  let _ = Curses.attr_set 2 2 in
+  let _ = Curses.move 0 0 in
+  let _ = Curses.addstr "Score " in
+  let unities = !score mod 10 in
+  let tennies = (!score / 10) mod 10 in
+  let hundreds = (!score / 100) mod 10 in
+  let _ = Curses.addch (48+(hundreds)) in
+  let _ = Curses.addch (48+(tennies)) in
+  let _ = Curses.addch (48+(unities)) in
+  ()
+;;
+
+let speedcalculation score =
+  let calculation = ((300 - !score*6)) in
+  if (calculation > 0) then
+    calculation
+  else
+    1
+;;
 
 (* MAIN LOOP *)
-let rec main_loop win s t fdirection apple = 
+let rec main_loop win s t fdirection apple score = 
 
   let _ = Curses.refresh in
 
   (* Getting input *)
-  let _ = Curses.timeout 200 in
+  let _ = Curses.timeout (speedcalculation score) in
   let input = Curses.getch () in
   let direction = getdirection input fdirection in
-  let (t2,napple) = slide_snake s t direction apple in
+  let (t2,napple) = slide_snake s t direction apple score in
 
-  (* Pressing q leave the game *)
+  let _ = print_score score in
+
+  (*Does the snake is screwed ?*)
   if (t2 == (-1,-1)) then 
     1
+  (* Pressing q leave the game *)
   else if (input == 113) then 
     1
+  (*The game can continue*)
   else
-    main_loop win s t2 direction napple
+    main_loop win s t2 direction napple score
 ;;
 
 
@@ -168,10 +219,11 @@ let () =
   let s =  create_snake () in
   let t = set_snake maxxy in
   let _ = Queue.push t s in
-  let apple = set_apple maxxy in
+  let apple = set_apple maxxy s in
+  let score = ref 0 in
 
   (* Main loop *)
-  let _ = main_loop win s t N apple in
+  let _ = main_loop win s t N apple score in
   
   Curses.endwin ()
 ;;
