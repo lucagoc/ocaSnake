@@ -50,6 +50,7 @@ let remove_c (x,y) =
 ;;
 
 let set_apple (x,y) =
+  let _ = Random.self_init  in
   let resx = (Random.int x)/2*2+1 in
   let resy = (Random.int y)/2*2+1 in
   let _ = print_a (resx, resy) in
@@ -68,13 +69,16 @@ let slide_snake s (x,y) direction apple =
   in
   let _ = aux s (x,y) direction in
   let _ = print_c !t in
-  if (apple == !t) then
-    (let _ = set_apple maxxy in
-    !t)
+
+  let (xapple, yapple) = apple in
+  let (tx, ty) = !t in
+  if (xapple == tx && yapple == ty) then
+    (let apple = set_apple maxxy in
+    (!t,apple))
   else
     (let (x1,y1) = Queue.pop s in
     let _ = remove_c (x1,y1) in
-    !t)
+    (!t,apple))
 ;;
 
 let set_snake (y,x) =
@@ -104,13 +108,13 @@ let rec main_loop win s t fdirection apple =
   let _ = Curses.timeout 200 in
   let input = Curses.getch () in
   let direction = getdirection input fdirection in
-  let t2 = slide_snake s t direction apple in
+  let (t2,napple) = slide_snake s t direction apple in
 
   (* Pressing q leave the game *)
   if (input == 113) then 
     1
   else
-    main_loop win s t2 direction apple
+    main_loop win s t2 direction napple
 ;;
 
 
