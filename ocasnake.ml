@@ -8,7 +8,7 @@ let initialize_window =
   let _ = Curses.curs_set 0 in
   let _ = Curses.start_color () in
   let _ = Curses.init_pair 0 0 0 in (*Background*)
-  let _ = Curses.init_pair 1 0 3 in (*Snake*)
+  let _ = Curses.init_pair 1 0 4 in (*Snake*)
   let _ = Curses.init_pair 2 0 1 in (*Apple*)
   win
 ;;
@@ -63,8 +63,8 @@ let set_apple (x,y) =
   let _ = Random.self_init  in
   let time = Sys.time () in
   let _ = Random.init ((Random.int 2048) + (int_of_float time)) in
-  let resx = (Random.int y)/2*2+1 in
-  let resy = (Random.int x)/2*2+1 in
+  let resx = ((Random.int y)/2)*2 in
+  let resy = ((Random.int x)/2)*2 in
   let _ = print_a (resx, resy) in
 
   (resx,resy)
@@ -85,9 +85,12 @@ let slide_snake s (x,y) direction apple =
 
   let (xapple, yapple) = apple in
   let (tx, ty) = !t in
+  let (maxx, maxy) = maxxy in
   if (xapple == tx && yapple == ty) then
     (let apple = set_apple maxxy in
     (!t,apple))
+  else if ((tx < 0) || (ty < 0) || (tx > maxy/2*2-1) || (ty > maxx/2*2-1)) then
+    ((-1,-1),(-1,-1)) (*Return stupid values*)
   else
     (let (x1,y1) = Queue.pop s in
     let _ = remove_c (x1,y1) in
@@ -95,7 +98,7 @@ let slide_snake s (x,y) direction apple =
 ;;
 
 let set_snake (y,x) =
-  let midx = x / 2 in
+  let midx = x / 2 + (x mod 2) in
   let midy = y / 2 in
   let s = create_snake () in
   let _ = Queue.push (midx, midy) s in
@@ -124,7 +127,9 @@ let rec main_loop win s t fdirection apple =
   let (t2,napple) = slide_snake s t direction apple in
 
   (* Pressing q leave the game *)
-  if (input == 113) then 
+  if (t2 == (-1,-1)) then 
+    1
+  else if (input == 113) then 
     1
   else
     main_loop win s t2 direction napple
