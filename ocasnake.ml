@@ -11,7 +11,7 @@ let initialize_window =
   let _ = Curses.init_pair 1 0 4 in (*Snake*)
   let _ = Curses.init_pair 2 0 1 in (*Apple*)
   let _ = Curses.init_pair 3 0 2 in (*Score*)
-  let _ = Curses.init_pair 4 0 2 in (*Overlay*)
+  let _ = Curses.init_pair 4 0 5 in (*Overlay*)
   win
 ;;
 
@@ -109,7 +109,7 @@ let rec set_apple (x,y) s =
 let create_snake = Queue.create;;
 
 let rec yourescrewd () =
-  let _ = Curses.attr_set 2 2 in
+  let _ = Curses.attr_set 4 4 in
   let (x,y) = maxxy in
   let midx = x / 2 + (x mod 2) in
   let midy = y / 2 in
@@ -141,7 +141,7 @@ let slide_snake s (x,y) direction apple score =
   let (maxx, maxy) = maxxy in
   if (issnakescrewed s !t) then
     (yourescrewd ();
-    ((-1,-1),(-1,-1))) (*Return stupid values*)
+    ((-1,-1),(-1,-1))) (*Return dumb values*)
   else
   if (xapple == tx && yapple == ty) then
     (let apple = set_apple maxxy s in
@@ -149,7 +149,7 @@ let slide_snake s (x,y) direction apple score =
     (!t,apple))
   else if ((tx < 0) || (ty < 0) || (tx > maxy/2*2-1) || (ty > maxx/2*2)) then
     (yourescrewd ();
-    ((-1,-1),(-1,-1))) (*Return stupid values*)
+    ((-1,-1),(-1,-1))) (*Return dumb values*)
   else
     (let (x1,y1) = Queue.pop s in
     let _ = remove_c (x1,y1) in
@@ -174,7 +174,7 @@ let getdirection input fdirection  = match input with
 ;;
 
 let print_score score =
-  let _ = Curses.attr_set 2 2 in
+  let _ = Curses.attr_set 3 3 in
   let _ = Curses.move 0 0 in
   let _ = Curses.addstr "Score " in
   let unities = !score mod 10 in
