@@ -1,7 +1,7 @@
 # ocaSnake! 🐍
 Basically a snake game, but in OCaml 'cause why not. 🐪 
 
-![Game Preview](./demo.gif)
+![Game Preview](./screen.png)
 
 ## Features
 - 💾 Timeless old school graphics !
