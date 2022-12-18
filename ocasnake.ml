@@ -42,7 +42,7 @@ let draw_menu menu_win maxxy =
 
 let print_s (x,y) rainbowmode =
   let color = ((x/2)+y) mod 8 in
-  let aux color rainbowmode = 
+  let aux color rainbowmode =
     if (rainbowmode) then match color with
     | 0 -> Curses.attr_set 11 11
     | 1 -> Curses.attr_set 12 12
@@ -114,7 +114,7 @@ let rec set_apple (x,y) s =
   let time = Sys.time () in
   let _ = Random.init ((Random.int 2048) + (int_of_float time)) in
   let resx = ((Random.int y)/2)*2 in
-  let resy = ((Random.int x)/2)*2 in
+  let resy = ((Random.int x)) in
 
   (*Test to not override the snake, using snakescrewed function*)
   if (issnakescrewed s (resx,resy)) then
@@ -136,7 +136,7 @@ let create_snake = Queue.create;;
 let rec yourescrewd () =
   let _ = Curses.attr_set 4 4 in
   let (x,y) = maxxy in
-  let midx = x / 2 + (x mod 2) in
+  let midx = x / 2 in
   let midy = y / 2 in
   let _ = Curses.move midx (midy-16) in
   let _ = Curses.addstr "YOURE SCREWD ! Press q to quit..." in
@@ -182,14 +182,14 @@ let slide_snake s (x,y) direction apple score rainbowmode =
 ;;
 
 let set_snake (y,x) =
-  let midx = x / 2 + (x mod 2) in
+  let midx = x / 2 in
   let midy = y / 2 in
   let s = create_snake () in
   let _ = Queue.push (midx, midy) s in
   let _ = print_s (midx,midy) false in
   (midx, midy)
 ;;
-  
+
 let getdirection input fdirection  = match input with
 | 258 -> if not(fdirection == W) then E else fdirection;
 | 259 -> if not(fdirection == E) then W else fdirection;
