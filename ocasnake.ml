@@ -190,11 +190,19 @@ let set_snake (y,x) =
   (midx, midy)
 ;;
 
+let pause () =
+  
+  let _ = Curses.timeout (-1) in
+  let _ = Curses.getch () in
+  ()
+;;
+
 let getdirection input fdirection  = match input with
 | 258 -> if not(fdirection == W) then E else fdirection;
 | 259 -> if not(fdirection == E) then W else fdirection;
 | 260 -> if not(fdirection == S) then N else fdirection;
 | 261 -> if not(fdirection == N) then S else fdirection;
+| 112 -> pause (); fdirection
 | _ -> fdirection
 ;;
 
